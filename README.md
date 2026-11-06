@@ -105,7 +105,7 @@ The static checker validates both pages and their cross-page anchors. Asset vers
 
 ## Instagram journal
 
-The homepage now includes real Instagram post previews: a randomized desktop collage, a swipeable phone gallery, and links to the original posts. An anonymous public-profile updater checks Royal Rose's Instagram link every six hours using GitHub Actions. No Meta app or Instagram credentials are required. This is a best-effort public-page integration; if Instagram limits access, the last good gallery remains visible. See [Instagram setup, operation and verification](docs/instagram.md).
+The homepage now includes real Instagram post previews: a randomized desktop collage, a swipeable phone gallery, and links to the original posts. The post collection is updated manually, as selected by the owner. No Meta app, Instagram credentials, feed subscription or active automatic schedule is required. A maintenance script can refresh the snapshot from the public link when anonymous access is available. See [Instagram setup, operation and verification](docs/instagram.md).
 
 ```sh
 node --test tests/instagram.test.mjs
