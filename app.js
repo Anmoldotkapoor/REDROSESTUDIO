@@ -1,4 +1,5 @@
 'use strict';
+import { createBrushStudio } from './brush-studio.mjs?v=a97b1fe103';
 (() => {
   document.documentElement.classList.add('js');
   const $ = (s, root = document) => root.querySelector(s);
@@ -100,7 +101,11 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 3500);
   }
-  function openDialog(dialog) { if (!dialog.open) dialog.showModal(); }
+  function openDialog(dialog) {
+    brushStudio.pause();
+    setMenuOpen(false);
+    if (!dialog.open) dialog.showModal();
+  }
   $$('.modal').forEach(dialog => {
     $('.modal-close', dialog).addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', event => {
@@ -110,17 +115,18 @@
     });
   });
   const menu = $('.menu-toggle');
-  menu.addEventListener('click', () => {
-    const expanded = menu.getAttribute('aria-expanded') === 'true';
-    menu.setAttribute('aria-expanded', String(!expanded));
-    menu.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu');
-    $('#mobile-nav').hidden = expanded;
+  function setMenuOpen(open) {
+    menu.setAttribute('aria-expanded', String(open));
+    menu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    $('#mobile-nav').hidden = !open;
+    document.body.classList.toggle('menu-open', open);
+  }
+  menu.addEventListener('click', () => setMenuOpen(menu.getAttribute('aria-expanded') !== 'true'));
+  $$('#mobile-nav a').forEach(a => a.addEventListener('click', () => setMenuOpen(false)));
+  document.addEventListener('pointerdown', event => {
+    if (!$('#mobile-nav').contains(event.target) && !menu.contains(event.target)) setMenuOpen(false);
   });
-  $$('#mobile-nav a').forEach(a => a.addEventListener('click', () => {
-    $('#mobile-nav').hidden = true;
-    menu.setAttribute('aria-expanded', 'false');
-    menu.setAttribute('aria-label', 'Open menu');
-  }));
+  matchMedia('(min-width:701px)').addEventListener('change', event => { if (event.matches) setMenuOpen(false); });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true') menu.click();
   });
@@ -435,110 +441,33 @@
   }
   $$('.look-finder-open').forEach(button => button.addEventListener('click', () => { finderStep = 0; answers = []; renderFinder(); openDialog($('#look-finder')); }));
 
-  // Color is revealed by erasing a monochrome canvas over the same portrait.
-  const canvas = $('#reveal-canvas');
-  const stage = $('#paint-stage');
-  const ctx = canvas.getContext('2d');
   const sourceImage = $('#paint-stage>img:first-child');
-  const cursor = $('.paint-cursor');
   let currentPaintMood = 'rose';
-  let revealMode = 'brush';
-  function updateSplit() {
-    const value = Number($('#split-reveal').value);
-    if (revealMode !== 'split') return;
-    canvas.style.opacity = '1';
-    canvas.style.clipPath = `inset(0 0 0 ${value}%)`;
-    $('.split-guide').style.left = `${value}%`;
-    $('#split-reveal').setAttribute('aria-valuetext', `${value} percent colour revealed`);
-  }
-  $('#split-reveal').addEventListener('input', updateSplit);
+  const brushStudio = createBrushStudio({
+    stage: $('#paint-stage'), canvas: $('#reveal-canvas'), image: sourceImage,
+    cursor: $('.paint-cursor'), size: $('#brush-size'), prompt: $('.paint-prompt'),
+    status: $('#paint-status'), toggle: $('#brush-touch-toggle'), revealButton: $('#reveal-all'),
+    slider: $('#split-reveal'), splitControls: $('#split-controls'), guide: $('.split-guide'), motionAllowed
+  });
   $$('.studio-mode button').forEach(button => button.addEventListener('click', () => {
-    revealMode = button.dataset.revealMode;
+    const mode = button.dataset.revealMode;
     $$('.studio-mode button').forEach(b => { const active = b === button; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
-    stage.classList.toggle('split-active', revealMode === 'split');
-    $('#split-reveal').hidden = revealMode !== 'split';
-    $('.split-guide').hidden = revealMode !== 'split';
-    $('.brush-size-label').hidden = revealMode === 'split';
-    setupCanvas();
+    $('.brush-size-label').hidden = mode === 'split';
+    brushStudio.setMode(mode);
   }));
   $$('.paint-moods button').forEach(button => button.addEventListener('click', () => {
     currentPaintMood = button.dataset.paint;
     $('#save-studio').dataset.save = currentPaintMood;
     syncSavedControls();
     $$('.paint-moods button').forEach(b => { const active = b === button; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
-    cancelAnimationFrame(paintFrame);
-    canvas.style.opacity = '0';
+    brushStudio.pause();
     sourceImage.alt = looks[currentPaintMood].title + ', AI-created editorial inspiration in the interactive brush studio';
     sourceImage.src = `assets/${currentPaintMood}.jpg`;
-    if (sourceImage.complete && sourceImage.naturalWidth) setupCanvas();
+    if (sourceImage.complete && sourceImage.naturalWidth) brushStudio.reset();
   }));
   $('#keep-paint-mood').addEventListener('click', () => { setMood(looks[currentPaintMood].mood); goToEnquiry(); });
-  let canvasWidth = 0, canvasHeight = 0, paintFrame = 0, lastPoint = null, touched = false;
-  function setupCanvas() {
-    if (!sourceImage.complete || !sourceImage.naturalWidth || !ctx) return;
-    cancelAnimationFrame(paintFrame);
-    const rect = stage.getBoundingClientRect();
-    canvasWidth = rect.width; canvasHeight = rect.height;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = canvasWidth * dpr; canvas.height = canvasHeight * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.shadowBlur = 0;
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    const ratio = Math.max(canvasWidth / sourceImage.naturalWidth, canvasHeight / sourceImage.naturalHeight);
-    const w = sourceImage.naturalWidth * ratio, h = sourceImage.naturalHeight * ratio;
-    ctx.filter = 'grayscale(1)';
-    ctx.drawImage(sourceImage, (canvasWidth - w) / 2, (canvasHeight - h) * 0.36, w, h);
-    ctx.filter = 'none'; ctx.fillStyle = '#e9d8c42b'; ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    canvas.style.opacity = '1';
-    canvas.style.clipPath = '';
-    $('.paint-prompt').style.opacity = revealMode === 'split' ? '0' : '1';
-    if (revealMode === 'split') { $('#split-reveal').value = '50'; updateSplit(); }
-    $('#reveal-all').textContent = 'Reveal the glow ↗';
-    lastPoint = null; touched = false;
-  }
-  function eraseAt(x, y, radius = 60) {
-    if (!ctx) return;
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.shadowColor = '#000'; ctx.shadowBlur = 9;
-    ctx.beginPath(); ctx.lineWidth = radius * 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    const from = lastPoint || { x, y };
-    ctx.moveTo(from.x, from.y); ctx.lineTo(x, y); ctx.stroke();
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
-    lastPoint = { x, y };
-    if (!touched) { touched = true; $('.paint-prompt').style.opacity = '0'; }
-  }
-  function paintPointer(event) {
-    if (revealMode !== 'brush') return;
-    const r = stage.getBoundingClientRect();
-    const x = event.clientX - r.left, y = event.clientY - r.top;
-    cursor.style.left = `${x}px`; cursor.style.top = `${y}px`;
-    if (event.pointerType === 'mouse' || event.type === 'pointerdown' || event.buttons) eraseAt(x, y, Number($('#brush-size').value) * (event.pointerType === 'mouse' ? 1 : 1.25));
-  }
-  canvas.addEventListener('pointerdown', paintPointer);
-  canvas.addEventListener('pointermove', paintPointer);
-  canvas.addEventListener('pointerleave', () => { lastPoint = null; });
-  canvas.addEventListener('pointerup', () => { lastPoint = null; });
-  $('#reset-reveal').addEventListener('click', setupCanvas);
-  $('#reveal-all').addEventListener('click', () => {
-    cancelAnimationFrame(paintFrame);
-    if (revealMode === 'split') { $('#split-reveal').value = '100'; updateSplit(); $('#reveal-all').textContent = 'Beautifully revealed ✓'; return; }
-    if (!motionAllowed()) { canvas.style.opacity = '0'; $('.paint-prompt').style.opacity = '0'; $('#reveal-all').textContent = 'Beautifully revealed ✓'; return; }
-    const start = performance.now(); lastPoint = null;
-    function frame(now) {
-      const progress = Math.min((now - start) / 1500, 1);
-      const y = progress * (canvasHeight + 150) - 75;
-      lastPoint = { x: -100, y };
-      eraseAt(canvasWidth + 100, y, 80);
-      if (progress < 1) paintFrame = requestAnimationFrame(frame);
-      else { canvas.style.opacity = '0'; $('#reveal-all').textContent = 'Beautifully revealed ✓'; lastPoint = null; }
-    }
-    paintFrame = requestAnimationFrame(frame);
-  });
-  sourceImage.addEventListener('load', setupCanvas);
-  if (sourceImage.complete) setupCanvas();
-  let lastStageWidth = 0;
-  new ResizeObserver(entries => { const w = entries[0].contentRect.width; if (Math.abs(w - lastStageWidth) > 1) { lastStageWidth = w; setupCanvas(); } }).observe(stage);
+  $('#reset-reveal').addEventListener('click', brushStudio.reset);
+  $('#reveal-all').addEventListener('click', brushStudio.revealAll);
 
   const today = new Date();
   const localISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

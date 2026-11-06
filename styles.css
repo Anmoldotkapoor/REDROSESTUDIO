@@ -26,3 +26,102 @@ body{overflow-x:clip}
 @media(max-width:370px){.location-strip p{font-size:15px;gap:7px 10px}.location-strip p>span+span:before{margin-right:10px}}
 /* Give the footer's own controls the full interaction area. */
 body.footer-in-view .moodboard-launch,body.footer-in-view .whatsapp-float{visibility:hidden;opacity:0;pointer-events:none;transform:translateY(12px)}
+
+/* A brush that works with a finger, and always leaves a way back to scrolling. */
+.paint-stage { touch-action:pan-y pinch-zoom; isolation:isolate; }
+.paint-stage > img:first-child { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+.paint-stage canvas { touch-action:pan-y pinch-zoom; }
+.paint-stage.brush-active, .paint-stage.brush-active canvas { touch-action:pinch-zoom; }
+.paint-stage.is-painting { cursor:crosshair; }
+.paint-prompt { left:20px; right:20px; bottom:22px; text-align:center; line-height:1.7; padding:9px 12px; background:#210e1899; border:1px solid #fff2; border-radius:6px; font-size:11px; }
+.brush-touch-toggle { position:absolute; z-index:8; top:20px; left:50%; transform:translateX(-50%); min-height:46px; padding:10px 19px; border:1px solid #f1cfc4; border-radius:30px; background:#f3ded1; color:#371723; box-shadow:0 4px 20px #18091130; font-size:12px; white-space:nowrap; touch-action:manipulation; }
+.brush-touch-toggle[aria-pressed=true] { background:#371723; color:#fff2e8; }
+.paint-stage.touch-studio .paint-cursor { display:none; }
+.paint-controls { align-items:flex-start; flex-wrap:wrap; }
+.paint-controls > span { font-size:10px; letter-spacing:.3px; line-height:1.6; flex:1 1 140px; padding-top:12px; }
+.paint-controls > div { margin-left:auto; }
+.paint-controls .text-link, .paint-controls button:last-child { min-height:44px; }
+.paint-controls button:last-child { width:44px; }
+.split-controls { margin-top:15px; padding:12px 16px 4px; border:1px solid var(--line); background:var(--surface); border-radius:8px; }
+.split-controls > div { display:flex; justify-content:space-between; gap:10px; font-size:10px; color:var(--muted); }
+.split-controls output { color:var(--accent); font-variant-numeric:tabular-nums; }
+input#split-reveal { position:relative; inset:auto; z-index:auto; opacity:1; display:block; width:100%; height:44px; min-height:44px; padding:0; margin:2px 0 0; border:0; border-radius:0; background:transparent; touch-action:pan-y pinch-zoom; cursor:ew-resize; accent-color:var(--accent); }
+input#split-reveal::-webkit-slider-runnable-track { height:3px; border-radius:3px; background:var(--line); }
+input#split-reveal::-webkit-slider-thumb { -webkit-appearance:none; width:28px; height:28px; margin-top:-12px; border:5px solid var(--bg); border-radius:50%; background:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+input#split-reveal::-moz-range-track { height:3px; border-radius:3px; background:var(--line); }
+input#split-reveal::-moz-range-thumb { width:20px; height:20px; border:4px solid var(--bg); border-radius:50%; background:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.split-guide > span { width:36px; height:36px; }
+body:has(dialog[open]) .mobile-book, body:has(dialog[open]) .whatsapp-float, body:has(dialog[open]) .moodboard-launch { visibility:hidden; pointer-events:none; }
+body.brush-editing .mobile-book, body.brush-editing .whatsapp-float, body.brush-editing .moodboard-launch { visibility:hidden; pointer-events:none; }
+
+@media (max-width:700px) {
+  html { scroll-padding-top:100px; }
+  .header { padding-left:max(5%,env(safe-area-inset-left)); padding-right:max(5%,env(safe-area-inset-right)); gap:10px; }
+  .theme-toggle, .menu-toggle { width:44px; min-width:44px; height:44px; min-height:44px; }
+  .menu-toggle { padding:12px; }
+  .mobile-nav:not([hidden]) { top:100%; gap:4px; max-height:calc(100dvh - 82px); overflow-y:auto; overscroll-behavior:contain; padding:16px 6% 22px; }
+  .mobile-nav a { min-height:48px; display:flex; align-items:center; font-size:25px; }
+  .hero-scenes { left:20px; gap:5px; }
+  .hero-scenes button { width:44px; height:44px; font-size:10px; }
+  .hero-scenes > span { display:none; }
+  .hero-save { width:44px; height:44px; top:24px; right:34px; }
+  .hero-save svg { width:20px; height:20px; }
+  .hero-copy > .text-link { min-height:44px; }
+  .artistry-grid { margin-top:28px; }
+  .brush-experience { min-width:0; }
+  .paint-moods { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:15px; }
+  .paint-moods button { justify-content:center; gap:5px; min-height:44px; padding:9px 4px; font-size:10.5px; line-height:1.4; }
+  .paint-moods i { width:8px; height:8px; flex-shrink:0; }
+  .studio-tools { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:15px; }
+  .studio-mode { display:grid; grid-template-columns:1fr 1fr; gap:3px; border:1px solid var(--line); padding:3px; border-radius:8px; background:var(--surface); }
+  .studio-mode button { min-height:44px; font-size:12px; border:0; border-radius:5px; padding:9px; }
+  .studio-mode button.active { background:var(--button); color:var(--button-ink); }
+  .brush-size-label { justify-content:space-between; font-size:11px; gap:16px; }
+  .brush-size-label select { width:150px; max-width:55%; min-height:44px; font-size:16px; padding:7px 4px; }
+  .paint-stage { width:100%; height:clamp(290px,112vw,460px); max-height:58svh; border-radius:140px 140px 8px 8px; }
+  .paint-controls { gap:4px 10px; margin-top:10px; }
+  .paint-controls > span { flex-basis:100%; font-size:11px; padding-top:0; }
+  .paint-controls > div { width:100%; justify-content:space-between; gap:14px; }
+  .paint-controls .text-link { font-size:12px; }
+  .paint-controls button:last-child { border:1px solid var(--line); border-radius:50%; font-size:25px; }
+  .studio-bottom { align-items:center; gap:10px; }
+  .studio-bottom > .fine-print { font-size:9px; flex:1 1 140px; }
+  .save-studio { min-height:44px; font-size:11px; }
+  .studio-explore-links { gap:15px; }
+  .studio-explore-links .text-link, #keep-paint-mood { min-height:44px; font-size:11px; }
+  .enquiry-form input, .enquiry-form select, .enquiry-form textarea, .compare-column select { max-width:100%; font-size:16px; min-height:48px; }
+  .enquiry-form label, .form-row { min-width:0; }
+  .enquiry-form input[type=date], .enquiry-form input[type=time] { display:block; min-width:0; width:100%; }
+  .celebration-options label > span { min-height:44px; display:flex; align-items:center; }
+  .celebration-options input { min-height:0; }
+  .modal { max-height:calc(100dvh - 24px); max-width:calc(100% - 24px); overscroll-behavior:contain; padding-bottom:max(28px,env(safe-area-inset-bottom)); scroll-padding-top:50px; }
+  .modal-close { width:44px; height:44px; top:9px; right:9px; }
+  .finder-back, .finder-save, .detail-save, .board-title, .board-remove, .compare-save, .footer-bottom a, .motion-toggle { min-height:44px; }
+  .compare-save { align-items:center; }
+  .email-actions { flex-direction:column; }
+  .email-actions .button { width:100%; min-height:48px; flex:auto; }
+  .email-recipient { overflow-wrap:anywhere; }
+  .footer-bottom a, .motion-toggle { display:inline-flex; align-items:center; }
+  .mobile-book { padding-left:max(5%,env(safe-area-inset-left)); padding-right:max(5%,env(safe-area-inset-right)); }
+  .whatsapp-float { bottom:calc(87px + env(safe-area-inset-bottom)); }
+  .moodboard-launch { bottom:calc(88px + env(safe-area-inset-bottom)); }
+  .toast { bottom:calc(88px + env(safe-area-inset-bottom)); }
+  body:has(.enquiry-form :is(input,select,textarea):focus) .mobile-book,
+  body:has(.enquiry-form :is(input,select,textarea):focus) .whatsapp-float,
+  body:has(.enquiry-form :is(input,select,textarea):focus) .moodboard-launch,
+  body.menu-open .mobile-book { visibility:hidden; pointer-events:none; }
+}
+@media (max-height:500px) and (max-width:1000px) {
+  .paint-stage { height:62svh; min-height:200px; max-height:none; border-radius:100px 100px 8px 8px; }
+  .modal { max-height:calc(100dvh - 16px); }
+  .header { height:68px; }
+  .mobile-nav:not([hidden]) { max-height:calc(100dvh - 68px); }
+}
+@media (any-pointer:coarse), (max-height:500px) and (max-width:1000px) {
+  input, select, textarea, .form-row input, .form-row select, .compare-column select { font-size:16px; min-height:44px; }
+  .brush-size-label select { font-size:16px; min-height:44px; width:150px; max-width:55%; }
+  .studio-mode button, .paint-moods button { min-height:44px; font-size:11px; }
+  .hero-scenes button, .hero-save { min-width:44px; min-height:44px; }
+  .modal-close { min-width:44px; min-height:44px; }
+  .celebration-options input { min-height:0; }
+}

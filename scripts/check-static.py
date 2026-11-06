@@ -1,6 +1,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 import re
+from urllib.parse import urlsplit
 
 root = Path(__file__).resolve().parents[1]
 void = {'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
@@ -34,7 +35,10 @@ for ref in check.refs:
     if ref.startswith(('http:', 'https:', 'mailto:', 'tel:', 'data:')): continue
     if ref.startswith('#'):
         if ref[1:] not in check.ids: check.errors.append('Missing fragment: ' + ref)
-    elif not (root/ref.split('#')[0]).is_file(): check.errors.append('Missing file: ' + ref)
+    elif not (root/urlsplit(ref).path).is_file(): check.errors.append('Missing file: ' + ref)
+for script in [*root.glob('*.js'), *root.glob('*.mjs')]:
+    for ref in re.findall(r'\bfrom\s+[\'\"](\./[^\'\"]+)[\'\"]', script.read_text()):
+        if not (script.parent/urlsplit(ref).path).is_file(): check.errors.append('Missing module: ' + ref)
 for css in root.glob('*.css'):
     for ref in re.findall(r'url\([\'\"]?([^\)\'\"]+)', css.read_text()):
         if not ref.startswith(('data:', 'https:', 'http:')) and not (root/ref).is_file(): check.errors.append('Missing CSS asset: ' + ref)

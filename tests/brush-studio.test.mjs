@@ -1,0 +1,108 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createBrushStudio } from '../brush-studio.mjs';
+
+function fixture({ touch = true, context = true } = {}) {
+  function element() {
+    const handlers = {}, attrs = {}, classes = new Set();
+    return { style: {}, hidden: false, value: '50', textContent: '', attrs,
+      classList: { add: x => classes.add(x), remove: x => classes.delete(x), toggle: (x, value) => value ? classes.add(x) : classes.delete(x), contains: x => classes.has(x) },
+      setAttribute: (key, value) => { attrs[key] = value; },
+      addEventListener: (name, fn) => { (handlers[name] ||= []).push(fn); },
+      emit: (name, event = {}) => { (handlers[name] || []).forEach(fn => fn(event)); }
+    };
+  }
+  const stage = element(), canvas = element(), image = element(), cursor = element(), toggle = element();
+  const prompt = element(), status = element(), revealButton = element(), slider = element(), splitControls = element(), guide = element();
+  const rect = { left: 10, top: 20, width: 320, height: 400 };
+  stage.getBoundingClientRect = () => rect;
+  Object.assign(image, { complete: true, naturalWidth: 1024, naturalHeight: 1280 });
+  const lines = [], pixels = [];
+  let from;
+  const ctx = { setTransform() {}, drawImage() {}, fillRect() {}, beginPath() {}, arc() {}, fill() {},
+    moveTo(x, y) { from = [x, y]; }, lineTo(x, y) { lines.push({ from, to: [x, y] }); }, stroke() {},
+    getImageData() { return { data: new Uint8ClampedArray([200, 100, 50, 255, 25, 60, 200, 255]) }; },
+    putImageData(data) { pixels.push([...data.data]); }
+  };
+  canvas.getContext = () => context ? ctx : null;
+  const captured = new Set();
+  canvas.setPointerCapture = id => captured.add(id);
+  canvas.hasPointerCapture = id => captured.has(id);
+  canvas.releasePointerCapture = id => captured.delete(id);
+  const output = element(); splitControls.querySelector = () => output;
+  const media = element(); media.matches = touch;
+  const win = element(); win.document = element(); win.devicePixelRatio = 2;
+  win.matchMedia = () => media; win.cancelAnimationFrame = () => {}; win.requestAnimationFrame = () => 1;
+  win.performance = { now: () => 0 };
+  let resize;
+  win.ResizeObserver = class { constructor(fn) { resize = fn; } observe() {} };
+  const studio = createBrushStudio({ stage, canvas, image, cursor, size: { value: '40' }, prompt, status, toggle, revealButton, slider, splitControls, guide, motionAllowed: () => false, win });
+  const pointer = (type, extra = {}) => canvas.emit(type, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 100, clientY: 120, button: 0, buttons: 0, cancelable: true, preventDefault() {}, ...extra });
+  return { studio, stage, canvas, image, toggle, prompt, status, revealButton, slider, splitControls, guide, lines, pixels, ctx, captured, rect, win, pointer, resize: () => resize() };
+}
+
+test('monochrome is generated from pixels without canvas filter support', () => {
+  const f = fixture();
+  assert.deepEqual(f.pixels[0], [118, 118, 118, 255, 63, 63, 63, 255]);
+  assert.equal('filter' in f.ctx, false);
+  assert.equal(f.revealButton.disabled, false);
+});
+test('touch scroll is available until Start, then zero-buttons touch moves paint', () => {
+  const f = fixture();
+  f.pointer('pointerdown'); assert.equal(f.lines.length, 0);
+  assert.equal(f.canvas.style.pointerEvents, 'none');
+  f.toggle.emit('click');
+  f.pointer('pointerdown');
+  f.pointer('pointermove', { clientX: 180, clientY: 260 });
+  assert.equal(f.lines.length, 2);
+  assert.equal(f.captured.has(1), true);
+  f.pointer('pointerup'); assert.equal(f.captured.size, 0);
+  f.toggle.emit('click');
+  assert.equal(f.canvas.style.pointerEvents, 'none');
+  assert.equal(f.stage.classList.contains('brush-active'), false);
+});
+test('cancellation releases capture and a new stroke never bridges the old stroke', () => {
+  const f = fixture(); f.toggle.emit('click'); f.pointer('pointerdown');
+  f.pointer('pointermove', { clientX: 170 }); f.pointer('pointercancel');
+  const count = f.lines.length;
+  f.pointer('pointermove', { clientX: 250 }); assert.equal(f.lines.length, count);
+  f.pointer('pointerdown', { pointerId: 2, clientX: 260, clientY: 350 });
+  const last = f.lines.at(-1); assert.deepEqual(last.from, last.to);
+  assert.equal(f.captured.has(1), false); assert.equal(f.captured.has(2), true);
+  f.win.emit('blur'); assert.equal(f.captured.size, 0);
+  assert.equal(f.canvas.style.pointerEvents, 'none');
+});
+test('secondary fingers are ignored and leaving the canvas does not interrupt captured strokes', () => {
+  const f = fixture(); f.toggle.emit('click'); f.pointer('pointerdown');
+  f.pointer('pointerdown', { pointerId: 2, isPrimary: false });
+  f.pointer('pointermove', { pointerId: 2, isPrimary: false });
+  assert.equal(f.lines.length, 1);
+  f.canvas.emit('pointerleave');
+  f.pointer('pointermove', { clientX: 240 }); assert.equal(f.lines.length, 2);
+});
+test('resize in both dimensions retains normalized strokes and a full reveal', () => {
+  const f = fixture(); f.toggle.emit('click'); f.pointer('pointerdown'); f.pointer('pointerup');
+  const point = f.lines.at(-1).to;
+  f.rect.width = 640; f.rect.height = 200; f.resize();
+  assert.deepEqual(f.lines.at(-1).to, [point[0] * 2, point[1] / 2]);
+  f.studio.revealAll(); assert.equal(f.canvas.style.opacity, '0');
+  f.rect.height = 300; f.resize(); assert.equal(f.canvas.style.opacity, '0');
+  f.studio.reset(); assert.equal(f.canvas.style.opacity, '1'); assert.equal(f.toggle.attrs['aria-pressed'], 'false');
+});
+test('slider, reset and reveal stay in sync across interaction modes', () => {
+  const f = fixture(); f.studio.setMode('split');
+  f.slider.value = '73'; f.slider.emit('input');
+  assert.equal(f.canvas.style.clipPath, 'inset(0 0 0 73%)');
+  assert.equal(f.slider.attrs['aria-valuetext'], '73 percent colour revealed');
+  f.rect.height = 300; f.resize(); assert.equal(f.slider.value, '73');
+  f.studio.revealAll(); assert.equal(f.slider.value, '100');
+  f.studio.reset(); assert.equal(f.slider.value, '50');
+  f.studio.setMode('brush'); assert.equal(f.splitControls.hidden, true);
+});
+test('desktop hover still paints and unavailable canvas leaves a usable portrait', () => {
+  const desktop = fixture({ touch: false });
+  desktop.pointer('pointermove', { pointerType: 'mouse' }); assert.equal(desktop.lines.length, 1);
+  const fallback = fixture({ context: false });
+  assert.equal(fallback.canvas.hidden, true); assert.equal(fallback.toggle.hidden, true);
+  assert.equal(fallback.revealButton.disabled, true);
+});

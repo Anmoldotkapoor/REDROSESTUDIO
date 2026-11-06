@@ -71,3 +71,17 @@ The final update was checked on desktop and phone. Both themes passed layout che
 ## GitHub Pages deployment
 
 Publish from the `main` branch and `/ (root)` folder in repository Settings → Pages. This copy is buildless and includes `.nojekyll`. Future commits to `main` update the live site.
+
+## Phone brush controls
+
+On a phone, tap **Start brushing**, sweep with a finger, and tap **Done brushing** to return to scrolling. **Slide to reveal** offers a visible comparison slider. Strokes survive resizing and rotation. See [mobile verification](docs/mobile-qa.md).
+
+After editing browser assets, run:
+
+```sh
+python3 scripts/version-assets.py
+node --check app.js
+node --check brush-studio.mjs
+node --test tests/brush-studio.test.mjs
+python3 scripts/check-static.py
+```
