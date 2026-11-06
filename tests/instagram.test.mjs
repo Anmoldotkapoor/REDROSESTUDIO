@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { normaliseFeed, selectPosts, postCode, INSTAGRAM_PROFILE } from '../instagram-data.mjs';
 import { approvedMediaUrl, fallbackMarkup, parsePublicProfile, syncInstagram } from '../scripts/sync-instagram.mjs';
+import { instagramPlatform, instagramDestination } from '../instagram-links.mjs';
 
 const base='https://example.com/studio/';
 const post=id=>({id,permalink:`https://www.instagram.com/p/${id}/`,image:`assets/instagram/${id}.jpg`,type:'IMAGE',caption:'A royal rose',timestamp:'2026-11-06'});
@@ -74,4 +75,26 @@ test('blocked Instagram access and failed image downloads leave the prior known-
   const bad=mockFetch([{...item('New'),display_uri:'https://evil.test/a.jpg'}]);
   await assert.rejects(syncInstagram({root,fetcher:bad}),/unsupported media host/);
   assert.equal(await readFile(join(root,'data/instagram-feed.json'),'utf8'),before);
+});
+test('Android links target the Instagram app and retain the exact original post as browser fallback',()=>{
+  for(const path of ['p/Photo_1/','reel/Clip-2/','royalrosestudiobygagan/']){
+    const url='https://www.instagram.com/'+path;
+    const link=instagramDestination(url,{userAgent:'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36'});
+    assert.equal(link.platform,'android');assert.equal(link.target,'_self');
+    assert(link.href.startsWith('intent://www.instagram.com/'+path+'#Intent;'));
+    assert(link.href.includes('package=com.instagram.android;'));
+    assert.equal(decodeURIComponent(link.href.split('S.browser_fallback_url=')[1].split(';end')[0]),url);
+  }
+});
+test('iPhone and iPad preserve direct universal links in the same browsing context, including iPad desktop mode',()=>{
+  for(const device of [{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'},{userAgent:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)'},{userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X)',platform:'MacIntel',maxTouchPoints:5}]){
+    const link=instagramDestination('https://www.instagram.com/royalrosestudiobygagan/reel/Clip_1/',device);
+    assert.equal(link.platform,'ios');assert.equal(link.target,'_self');
+    assert.equal(link.href,'https://www.instagram.com/reel/Clip_1/');assert.equal(link.href,link.webUrl);
+  }
+});
+test('desktop retains normal new-tab links and unsafe app destinations cannot be constructed',()=>{
+  assert.equal(instagramPlatform({userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X)',platform:'MacIntel',maxTouchPoints:0}),'desktop');
+  assert.deepEqual(instagramDestination('https://instagram.com/p/One/?tracking=unused',{}),{href:'https://www.instagram.com/p/One/',webUrl:'https://www.instagram.com/p/One/',platform:'desktop',target:'_blank'});
+  for(const bad of ['javascript:alert(1)','https://instagram.com.evil/p/One/','https://user:pass@instagram.com/p/One/','https://instagram.com:444/p/One/','https://www.instagram.com/accounts/login/'])assert.equal(instagramDestination(bad,{userAgent:'Android'}),null);
 });

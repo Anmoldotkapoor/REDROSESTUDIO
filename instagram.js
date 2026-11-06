@@ -1,4 +1,5 @@
 import { normaliseFeed, selectPosts } from './instagram-data.mjs?v=c7266b9d95';
+import { configureInstagramLink } from './instagram-links.mjs?v=27bca4c578';
 
 const section = document.querySelector('#instagram');
 if (section) {
@@ -42,6 +43,7 @@ if (section) {
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
       card.setAttribute('aria-label', `Open Royal Rose Instagram ${kind.toLowerCase()}${date ? ` from ${date}` : ''} (opens in a new tab)`);
+      configureInstagramLink(card);
       const image = document.createElement('img');
       image.src = post.image;
       image.alt = post.alt;
@@ -117,6 +119,7 @@ if (section) {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = 'Find the next chapter on Instagram ↗';
+        configureInstagramLink(link);
         gallery.append(link);
         return;
       }
@@ -125,7 +128,7 @@ if (section) {
     } catch {
       // Keep the real, locally hosted post previews if the feed cannot be refreshed.
       const cards = [...gallery.children];
-      feed = normaliseFeed({ version: 1, username: 'royalrosestudiobygagan', posts: cards.map(card => ({ permalink: card.href, image: card.querySelector('img')?.getAttribute('src'), alt: card.querySelector('img')?.alt, type: card.querySelector('.instagram-kind')?.textContent === 'Reel' ? 'VIDEO' : 'IMAGE' })) }, location.href);
+      feed = normaliseFeed({ version: 1, username: 'royalrosestudiobygagan', posts: cards.map(card => ({ permalink: card.dataset.instagramWebUrl || card.href, image: card.querySelector('img')?.getAttribute('src'), alt: card.querySelector('img')?.alt, type: card.querySelector('.instagram-kind')?.textContent === 'Reel' ? 'VIDEO' : 'IMAGE' })) }, location.href);
       if (feed.length) render();
     }
   }

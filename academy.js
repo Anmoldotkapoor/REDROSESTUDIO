@@ -1,4 +1,7 @@
 import { courses, locations, formatLabels, normalizeSelection, chooseCourse, buildEnquiry } from './academy-data.mjs?v=afdd2584cf';
+import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
+
+configureInstagramLinks();
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];

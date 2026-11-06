@@ -1,6 +1,8 @@
 'use strict';
 import { createBrushStudio } from './brush-studio.mjs?v=a97b1fe103';
+import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
 (() => {
+  configureInstagramLinks();
   document.documentElement.classList.add('js');
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
