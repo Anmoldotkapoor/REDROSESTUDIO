@@ -72,6 +72,10 @@ The final update was checked on desktop and phone. Both themes passed layout che
 
 Publish from the `main` branch and `/ (root)` folder in repository Settings → Pages. This copy is buildless and includes `.nojekyll`. Future commits to `main` update the live site.
 
+## Logo files
+
+The rose-and-brush logo is available as a [transparent PNG](assets/royal-rose-logo.png) and an [ivory presentation PNG](assets/royal-rose-logo-preview.png). See [brand notes](docs/brand-identity.md) for the emblem, colours, generation prompts and website treatment.
+
 ## Phone brush controls
 
 On a phone, tap **Start brushing**, sweep with a finger, and tap **Done brushing** to return to scrolling. **Slide to reveal** offers a visible comparison slider. Strokes survive resizing and rotation. See [mobile verification](docs/mobile-qa.md).

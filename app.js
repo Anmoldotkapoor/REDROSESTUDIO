@@ -345,10 +345,13 @@ import { createBrushStudio } from './brush-studio.mjs?v=a97b1fe103';
     try {
       await document.fonts.ready;
       const photos = await Promise.all(keys.map(async key => { const img = new Image(); img.src = `assets/${key}.jpg`; await img.decode(); return img; }));
+      const brandStamp = new Image(); brandStamp.src = 'assets/royal-rose-emblem.png'; await brandStamp.decode();
       const card = document.createElement('canvas'); card.width = 1080; card.height = 1440;
       const c = card.getContext('2d'); if (!c) throw new Error('Canvas unavailable');
       c.fillStyle = '#27101f'; c.fillRect(0, 0, 1080, 1440);
       c.strokeStyle = '#a779704d'; c.lineWidth = 1; c.strokeRect(30, 30, 1020, 1380);
+      c.fillStyle = '#faf3ed'; c.beginPath(); c.arc(970, 85, 48, 0, Math.PI * 2); c.fill();
+      c.drawImage(brandStamp, 930, 45, 80, 80);
       c.fillStyle = '#d3ae9c'; c.font = '500 19px "DM Sans", sans-serif'; c.fillText('ROYAL ROSE STUDIO / BY GAGAN', 65, 94);
       c.fillStyle = '#f3e4d9'; c.font = '400 70px "Bodoni Moda", Georgia'; c.fillText('My inspiration edit.', 61, 188);
       c.fillStyle = '#c2a6ab'; c.font = '400 20px "DM Sans", sans-serif'; c.fillText('A little romance. A little radiance. Beautifully me.', 65, 231);

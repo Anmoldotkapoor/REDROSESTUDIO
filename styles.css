@@ -125,3 +125,24 @@ body.brush-editing .mobile-book, body.brush-editing .whatsapp-float, body.brush-
   .modal-close { min-width:44px; min-height:44px; }
   .celebration-options input { min-height:0; }
 }
+
+/* Royal Rose identity: the rose blooms into the brush. */
+.brand { gap:0; }
+.brand-lockup { display:block; width:234px; height:78px; object-fit:contain; filter:brightness(0) saturate(100%) invert(91%) sepia(12%) saturate(497%) hue-rotate(326deg) brightness(103%); }
+html[data-theme=light] .brand-lockup { filter:none; }
+.footer-top .brand-lockup { width:270px; height:90px; }
+.experience-signature img { width:42px; height:42px; object-fit:contain; }
+.board-empty img { width:84px; height:84px; object-fit:contain; }
+@media (max-width:1100px) and (min-width:701px) {
+  .brand-lockup { width:207px; height:69px; }
+  .footer-top .brand-lockup { width:225px; height:75px; }
+}
+@media (max-width:700px) {
+  .header .brand-lockup { width:clamp(164px,47vw,200px); height:auto; max-height:67px; }
+  .footer-top { grid-template-columns:1fr; text-align:center; gap:20px; }
+  .footer-top .brand { justify-self:center; }
+  .footer-top .brand-lockup { width:270px; height:90px; max-width:100%; }
+  .footer-top > p { max-width:none; }
+  .footer-social { grid-column:auto; justify-content:center; }
+  .experience-signature img { width:36px; height:36px; }
+}
