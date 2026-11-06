@@ -125,3 +125,7 @@ Both profiles appear as accessible logo links in the Studio and Academy footers.
 ## Swiping and brush cursors
 
 The three hero portraits accept left/right swipes or drags with wraparound, alongside the number buttons and keyboard controls. Start brushing now immediately shows the touch brush, follows contact and restores scrolling with Done. Fine-pointer devices get a small native brush cursor across the website and Academy, with normal input cursors and browser fallbacks. See [interaction notes and verification](docs/interaction-qa.md).
+
+## Latest reliability and speed audit
+
+Direct photo dragging/tapping now works in Slide to reveal. All 41 regression tests pass, with both pages checked in both themes at phone, tablet and desktop widths. Web logo/emblem assets are 74.5% smaller together; originals remain intact. Canvas work is cached, offscreen imagery/feed work is deferred, and module dependencies preload. See [the detailed audit and limits](docs/site-audit.md).

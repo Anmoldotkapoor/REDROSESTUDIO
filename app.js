@@ -1,6 +1,6 @@
 'use strict';
 import { createHeroSwipe, nextHeroIndex } from './hero-swipe.mjs?v=a8711d9615';
-import { createBrushStudio } from './brush-studio.mjs?v=696e3a89d8';
+import { createBrushStudio } from './brush-studio.mjs?v=4f5376298b';
 import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
 (() => {
   configureInstagramLinks();

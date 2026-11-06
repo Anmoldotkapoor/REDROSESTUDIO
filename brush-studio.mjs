@@ -6,9 +6,11 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   let width = 0, height = 0, ratio = 1, frame = 0;
   let mode = 'brush', active = false, pointer = null, last = null;
   let strokes = [], stroke = null, revealed = false, ready = false;
+  let monochrome = null, comparison = null;
   const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 
   function stopPointer() {
+    stopComparison();
     const id = pointer;
     pointer = null; last = null; stroke = null;
     try { if (id !== null && canvas.hasPointerCapture?.(id)) canvas.releasePointerCapture(id); } catch {}
@@ -29,9 +31,9 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
     guide.hidden = mode !== 'split';
     cursor.hidden = !ready || revealed || mode !== 'brush' || touch && !active;
     canvas.style.pointerEvents = mode === 'split' || (touch && !active) || !ready || revealed ? 'none' : 'auto';
-    prompt.textContent = !ready ? 'Your colour edit is loading…' : revealed ? 'Your colour, in full bloom.' : mode === 'split' ? 'Drag the slider below to compare' : touch ? active ? 'Paint with your finger. Tap Done to scroll.' : 'Tap Start, then sweep with your finger' : 'Sweep the brush to reveal your radiance';
+    prompt.textContent = !ready ? 'Your colour edit is loading…' : mode === 'split' ? 'Drag across the photo or use the slider below' : revealed ? 'Your colour, in full bloom.' : touch ? active ? 'Paint with your finger. Tap Done to scroll.' : 'Tap Start, then sweep with your finger' : 'Sweep the brush to reveal your radiance';
     prompt.style.opacity = strokes.length && mode === 'brush' && !revealed ? '0' : '1';
-    status.textContent = !ready ? 'Preparing your edit…' : revealed ? 'Beautifully revealed' : mode === 'split' ? `${slider.value}% colour revealed` : touch && active ? 'Brush is on · tap Done to scroll' : strokes.length ? 'Your colour is blooming' : touch ? 'Ready for your touch' : 'Your brush. A little magic.';
+    status.textContent = !ready ? 'Preparing your edit…' : mode === 'split' ? `${slider.value}% colour revealed` : revealed ? 'Beautifully revealed' : touch && active ? 'Brush is on · tap Done to scroll' : strokes.length ? 'Your colour is blooming' : touch ? 'Ready for your touch' : 'Your brush. A little magic.';
     revealButton.textContent = revealed && mode === 'brush' || mode === 'split' && Number(slider.value) === 100 ? 'Beautifully revealed ✓' : 'Reveal the glow ↗';
   }
   function paintPoint(point, radius, previous) {
@@ -52,32 +54,83 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   }
   function updateSplit() {
     if (mode !== 'split') return;
-    const value = clamp(Number(slider.value), 0, 100);
+    const number = Number(slider.value);
+    const value = Math.round(clamp(Number.isFinite(number) ? number : 50, 0, 100));
+    slider.value = String(value);
     canvas.style.opacity = '1'; canvas.style.clipPath = `inset(0 0 0 ${value}%)`;
     guide.style.left = `${value}%`;
     slider.setAttribute('aria-valuetext', `${value} percent colour revealed`);
     splitControls.querySelector('output').textContent = `${value}% colour`;
-    syncControls();
+    status.textContent = `${value}% colour revealed`;
+    revealButton.textContent = value === 100 ? 'Beautifully revealed ✓' : 'Reveal the glow ↗';
   }
+  function stopComparison() {
+    const previous = comparison; comparison = null;
+    try { if (previous && stage.hasPointerCapture?.(previous.id)) stage.releasePointerCapture(previous.id); } catch {}
+    stage.classList.remove('is-comparing');
+  }
+  function compareAt(clientX) {
+    const rect = stage.getBoundingClientRect();
+    if (!rect.width) return;
+    slider.value = String(Math.round(clamp((clientX - rect.left) / rect.width * 100, 0, 100)));
+    updateSplit();
+  }
+  function compareDown(event) {
+    if (mode !== 'split' || !ready || comparison || event.isPrimary === false || event.pointerType === 'mouse' && event.button !== 0 || event.target?.closest?.('button,input,select,a')) return;
+    comparison = {id:event.pointerId,x:event.clientX,y:event.clientY,horizontal:event.pointerType === 'mouse'};
+    if (comparison.horizontal) {
+      if (event.cancelable) event.preventDefault();
+      try { stage.setPointerCapture?.(event.pointerId); } catch {}
+      compareAt(event.clientX); stage.classList.add('is-comparing');
+    }
+  }
+  function compareMove(event) {
+    if (!comparison || comparison.id !== event.pointerId || mode !== 'split') return;
+    const x = Math.abs(event.clientX - comparison.x), y = Math.abs(event.clientY - comparison.y);
+    if (!comparison.horizontal && y > 8 && y > x) { stopComparison(); return; }
+    if (comparison.horizontal || x > 8 && x > y * 1.2) {
+      comparison.horizontal = true;
+      if (event.cancelable) event.preventDefault();
+      try { if (!stage.hasPointerCapture?.(event.pointerId)) stage.setPointerCapture?.(event.pointerId); } catch {}
+      stage.classList.add('is-comparing'); compareAt(event.clientX);
+    }
+  }
+  function compareUp(event) {
+    if (!comparison || comparison.id !== event.pointerId) return;
+    compareAt(event.clientX); stopComparison();
+  }
+  function compareCancel(event) { if (comparison?.id === event.pointerId) stopComparison(); }
+  stage.addEventListener('pointerdown', compareDown);
+  stage.addEventListener('pointermove', compareMove);
+  stage.addEventListener('pointerup', compareUp);
+  stage.addEventListener('pointercancel', compareCancel);
+  stage.addEventListener('lostpointercapture', compareCancel);
   function render() {
     if (!ctx || !image.complete || !image.naturalWidth) return;
     const rect = stage.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     stopPointer(); win.cancelAnimationFrame(frame); frame = 0;
     width = rect.width; height = rect.height; ratio = Math.min(win.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+    const pixelWidth = Math.round(width * ratio), pixelHeight = Math.round(height * ratio);
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0;
-    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-    const w = image.naturalWidth * scale, h = image.naturalHeight * scale;
-    ctx.drawImage(image, (width - w) / 2, (height - h) * 0.36, w, h);
+    const key = `${image.currentSrc || image.src || ''}:${image.naturalWidth}:${image.naturalHeight}:${pixelWidth}:${pixelHeight}`;
     try {
-      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < pixels.data.length; i += 4) {
-        const grey = Math.round(pixels.data[i] * .2126 + pixels.data[i + 1] * .7152 + pixels.data[i + 2] * .0722);
-        pixels.data[i] = grey; pixels.data[i + 1] = grey; pixels.data[i + 2] = grey;
+      if (monochrome?.key !== key) {
+        ctx.clearRect?.(0, 0, width, height);
+        const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+        const w = image.naturalWidth * scale, h = image.naturalHeight * scale;
+        ctx.drawImage(image, (width - w) / 2, (height - h) * .36, w, h);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < pixels.data.length; i += 4) {
+          const grey = Math.round(pixels.data[i] * .2126 + pixels.data[i + 1] * .7152 + pixels.data[i + 2] * .0722);
+          pixels.data[i] = grey; pixels.data[i + 1] = grey; pixels.data[i + 2] = grey;
+        }
+        monochrome = {key,pixels};
       }
-      ctx.putImageData(pixels, 0, 0);
+      ctx.putImageData(monochrome.pixels, 0, 0);
     } catch {
       // A future remote image without CORS must still leave the portrait usable.
       ready = false; canvas.style.opacity = '0'; syncControls();
@@ -133,7 +186,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   function up(event) { if (pointer === event.pointerId) { stopPointer(); syncControls(); } }
   function leave() { if (pointer === null) { last = null; stroke = null; } }
   function setMode(value) {
-    stopPointer(); active = false; mode = value === 'split' ? 'split' : 'brush'; render();
+    stopPointer(); active = false; mode = value === 'split' ? 'split' : 'brush'; syncControls(); render();
   }
   function revealAll() {
     if (!ready) return;
@@ -153,6 +206,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   }
   toggle.addEventListener('click', () => setActive(!active));
   slider.addEventListener('input', updateSplit);
+  slider.addEventListener('change', updateSplit);
   canvas.addEventListener('pointerdown', down);
   canvas.addEventListener('pointermove', move);
   canvas.addEventListener('pointerup', up);
@@ -165,17 +219,22 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
     canvas.addEventListener('touchmove', event => { const touch = [...event.touches].find(t => t.identifier === pointer); if (touch) move(pointerEvent(touch,event)); }, { passive:false });
     canvas.addEventListener('touchend', event => { for (const touch of event.changedTouches) up(pointerEvent(touch,event)); }, { passive:false });
     canvas.addEventListener('touchcancel', event => { for (const touch of event.changedTouches) up(pointerEvent(touch,event)); }, { passive:false });
+    stage.addEventListener('touchstart', event => { if (event.touches.length === 1) compareDown(pointerEvent(event.changedTouches[0],event)); }, { passive:true });
+    stage.addEventListener('touchmove', event => { const touch = [...event.touches].find(t => t.identifier === comparison?.id); if (touch) compareMove(pointerEvent(touch,event)); }, { passive:false });
+    stage.addEventListener('touchend', event => { for (const touch of event.changedTouches) compareUp(pointerEvent(touch,event)); }, { passive:true });
+    stage.addEventListener('touchcancel', stopComparison, { passive:true });
   }
-  image.addEventListener('load', reset);
+  image.addEventListener('load', () => { monochrome = null; reset(); });
   image.addEventListener('error', () => { ready = false; canvas.style.opacity = '0'; syncControls(); status.textContent = 'This edit could not load. Try another mood.'; });
   touchLayout.addEventListener('change', () => setActive(false));
   win.addEventListener('blur', () => setActive(false));
   win.document.addEventListener('visibilitychange', () => { if (win.document.hidden) setActive(false); });
-  const resize = new win.ResizeObserver(() => {
+  const onResize = () => {
     const rect = stage.getBoundingClientRect();
     if (Math.abs(rect.width - width) > 1 || Math.abs(rect.height - height) > 1 || ratio !== Math.min(win.devicePixelRatio || 1, 2)) render();
-  });
-  resize.observe(stage);
+  };
+  if (win.ResizeObserver) new win.ResizeObserver(onResize).observe(stage);
+  else win.addEventListener('resize', onResize, {passive:true});
   image.draggable = false;
   syncControls();
   if (image.complete) render();

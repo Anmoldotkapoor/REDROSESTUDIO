@@ -100,9 +100,11 @@ if (section) {
   async function loadFeed() {
     if (requested) return;
     requested = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     try {
       const feedUrl = new URL(section.dataset.instagramFeed, location.href);
-      const response = await fetch(feedUrl, { cache: 'no-cache', credentials: 'omit', signal: AbortSignal.timeout(8000) });
+      const response = await fetch(feedUrl, { cache: 'no-cache', credentials: 'omit', signal: controller.signal });
       if (!response.ok) throw new Error('Feed unavailable');
       const data = await response.json();
       if (data?.version !== 1 || data.username !== 'royalrosestudiobygagan' || !Array.isArray(data.posts)) throw new Error('Invalid feed');
@@ -130,9 +132,14 @@ if (section) {
       const cards = [...gallery.children];
       feed = normaliseFeed({ version: 1, username: 'royalrosestudiobygagan', posts: cards.map(card => ({ permalink: card.dataset.instagramWebUrl || card.href, image: card.querySelector('img')?.getAttribute('src'), alt: card.querySelector('img')?.alt, type: card.querySelector('.instagram-kind')?.textContent === 'Reel' ? 'VIDEO' : 'IMAGE' })) }, location.href);
       if (feed.length) render();
-    }
+    } finally { clearTimeout(timeout); }
   }
   updatePosition();
-  // Fetch once on each visit; no Meta scripts, third-party embeds or visitor tracking.
-  loadFeed();
+  // Leave bandwidth for the hero; refresh the journal as it approaches the viewport.
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); loadFeed(); }
+    }, {rootMargin:'700px 0px'});
+    observer.observe(section);
+  } else loadFeed();
 }

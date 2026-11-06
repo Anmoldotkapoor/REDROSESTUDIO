@@ -189,3 +189,11 @@ html[data-theme=light] .brand-lockup { filter:none; }
   input[type=range] { cursor:ew-resize; }
   button:disabled,input:disabled,select:disabled { cursor:not-allowed; }
 }
+
+/* The divider and the photograph are both comparison touch targets. */
+.paint-stage.split-active { cursor:ew-resize; touch-action:pan-y pinch-zoom; }
+.paint-stage.split-active > img:first-child { cursor:ew-resize; }
+.paint-stage.is-comparing { user-select:none; -webkit-user-select:none; }
+.split-guide > span { width:44px; height:44px; }
+input#split-reveal { touch-action:none; }
+@media(forced-colors:active) { input#split-reveal { appearance:auto; -webkit-appearance:auto; } }
