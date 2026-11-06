@@ -169,3 +169,23 @@ html[data-theme=light] .brand-lockup { filter:none; }
 .footer-social { flex-wrap:wrap; gap:12px; }
 .footer-social .social-icon { flex-shrink:0; }
 @media(min-width:701px) and (max-width:1000px) { .footer-top .footer-social { flex-basis:100%; justify-content:center; } }
+
+/* Swipe portraits without blocking the page's vertical scrolling. */
+.hero-image-wrap { touch-action:pan-y pinch-zoom; }
+.hero-image-wrap > .hero-image { -webkit-user-drag:none; user-select:none; -webkit-user-select:none; }
+.hero-image-wrap.is-swiping .hero-image { transform:translateX(var(--hero-swipe-x,0px)) scale(1.025); transition:none; }
+.hero-swipe-cue { display:inline; font-size:9px; color:var(--accent); letter-spacing:.2px; }
+/* Show the brush as soon as touch painting starts. */
+.paint-stage.brush-active,.paint-stage.brush-active canvas { touch-action:none; }
+.paint-stage.touch-studio.brush-active .paint-cursor { display:block; opacity:1; width:135px; }
+.paint-stage.is-painting .paint-cursor { opacity:1; }
+@media(hover:hover) and (pointer:fine) { .paint-stage:not(.touch-studio) canvas { cursor:none; } }
+
+/* A compact native brush cursor, with a PNG and standard-pointer fallback. */
+@media(any-hover:hover) and (any-pointer:fine) {
+  html,body { cursor:url('assets/brush-pointer.svg') 6 6,url('assets/brush-pointer.png') 6 6,auto; }
+  a,button,summary,select,label,[role=button] { cursor:url('assets/brush-pointer.svg') 6 6,url('assets/brush-pointer.png') 6 6,pointer; }
+  input:not([type=range]),textarea,[contenteditable=true] { cursor:text; }
+  input[type=range] { cursor:ew-resize; }
+  button:disabled,input:disabled,select:disabled { cursor:not-allowed; }
+}

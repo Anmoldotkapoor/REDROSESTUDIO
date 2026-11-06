@@ -11,7 +11,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   function stopPointer() {
     const id = pointer;
     pointer = null; last = null; stroke = null;
-    if (id !== null && canvas.hasPointerCapture?.(id)) canvas.releasePointerCapture(id);
+    try { if (id !== null && canvas.hasPointerCapture?.(id)) canvas.releasePointerCapture(id); } catch {}
     stage.classList.remove('is-painting');
   }
   function syncControls() {
@@ -27,6 +27,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
     revealButton.disabled = !ready;
     slider.disabled = !ready;
     guide.hidden = mode !== 'split';
+    cursor.hidden = !ready || revealed || mode !== 'brush' || touch && !active;
     canvas.style.pointerEvents = mode === 'split' || (touch && !active) || !ready || revealed ? 'none' : 'auto';
     prompt.textContent = !ready ? 'Your colour edit is loading…' : revealed ? 'Your colour, in full bloom.' : mode === 'split' ? 'Drag the slider below to compare' : touch ? active ? 'Paint with your finger. Tap Done to scroll.' : 'Tap Start, then sweep with your finger' : 'Sweep the brush to reveal your radiance';
     prompt.style.opacity = strokes.length && mode === 'brush' && !revealed ? '0' : '1';
@@ -91,7 +92,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   }
   function setActive(value) {
     stopPointer(); active = Boolean(value) && ready && !revealed && mode === 'brush'; syncControls();
-    if (active && touchLayout.matches) stage.scrollIntoView?.({ block: 'center', behavior: motionAllowed() ? 'smooth' : 'instant' });
+    if (active) positionCursor({ x:width * .62, y:height * .47 });
   }
   function reset() {
     stopPointer(); strokes = []; revealed = false; active = false; slider.value = '50'; render();
@@ -109,11 +110,15 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
     stroke.points.push({ x: point.x / width, y: point.y / height });
     last = point; prompt.style.opacity = '0'; status.textContent = 'Your colour is blooming';
   }
+  function positionCursor(point) {
+    cursor.style.left = `${point.x}px`; cursor.style.top = `${point.y}px`;
+  }
   function down(event) {
     if (mode !== 'brush' || !ready || revealed || event.isPrimary === false || pointer !== null || event.pointerType === 'mouse' && event.button !== 0 || touchLayout.matches && !active) return;
     if (event.cancelable) event.preventDefault();
     win.cancelAnimationFrame(frame); frame = 0; last = null; stroke = null; pointer = event.pointerId;
-    canvas.setPointerCapture?.(event.pointerId);
+    try { canvas.setPointerCapture?.(event.pointerId); } catch {}
+    positionCursor(pointFrom(event));
     stage.classList.add('is-painting'); addPoint(event);
   }
   function move(event) {
@@ -122,7 +127,7 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
     if (!hovering && (pointer !== event.pointerId || touchLayout.matches && !active)) return;
     if (event.cancelable && !hovering) event.preventDefault();
     const point = pointFrom(event);
-    cursor.style.left = `${point.x}px`; cursor.style.top = `${point.y}px`;
+    positionCursor(point);
     addPoint(event);
   }
   function up(event) { if (pointer === event.pointerId) { stopPointer(); syncControls(); } }
@@ -154,6 +159,13 @@ export function createBrushStudio({ stage, canvas, image, cursor, size, prompt, 
   canvas.addEventListener('pointercancel', up);
   canvas.addEventListener('lostpointercapture', up);
   canvas.addEventListener('pointerleave', leave);
+  if (!win.PointerEvent) {
+    const pointerEvent = (touch, event) => ({ pointerId:touch.identifier, pointerType:'touch', isPrimary:true, clientX:touch.clientX, clientY:touch.clientY, cancelable:event.cancelable, preventDefault:()=>event.preventDefault() });
+    canvas.addEventListener('touchstart', event => { if (event.touches.length === 1) down(pointerEvent(event.changedTouches[0],event)); }, { passive:false });
+    canvas.addEventListener('touchmove', event => { const touch = [...event.touches].find(t => t.identifier === pointer); if (touch) move(pointerEvent(touch,event)); }, { passive:false });
+    canvas.addEventListener('touchend', event => { for (const touch of event.changedTouches) up(pointerEvent(touch,event)); }, { passive:false });
+    canvas.addEventListener('touchcancel', event => { for (const touch of event.changedTouches) up(pointerEvent(touch,event)); }, { passive:false });
+  }
   image.addEventListener('load', reset);
   image.addEventListener('error', () => { ready = false; canvas.style.opacity = '0'; syncControls(); status.textContent = 'This edit could not load. Try another mood.'; });
   touchLayout.addEventListener('change', () => setActive(false));

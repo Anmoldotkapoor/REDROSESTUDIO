@@ -1,5 +1,6 @@
 'use strict';
-import { createBrushStudio } from './brush-studio.mjs?v=a97b1fe103';
+import { createHeroSwipe, nextHeroIndex } from './hero-swipe.mjs?v=a8711d9615';
+import { createBrushStudio } from './brush-studio.mjs?v=696e3a89d8';
 import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
 (() => {
   configureInstagramLinks();
@@ -392,6 +393,7 @@ import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
     $('.hero-image').src = `assets/${key}.jpg`; $('.hero-image').alt = looks[key].title + ', AI-created editorial inspiration';
     $('.image-script').innerHTML = `<span>${edit.label}</span>${edit.copy}`;
     $('#save-hero').dataset.save = key; syncSavedControls();
+    $('#hero-portrait-status').textContent = `Portrait ${sceneButtons.indexOf(button) + 1} of ${sceneButtons.length}: ${looks[key].title}.`;
     if (motionAllowed()) $('.hero-image').animate([{ opacity: 0.4, filter: 'blur(3px)' }, { opacity: 1, filter: 'blur(0)' }], { duration: 600, easing: 'ease-out' });
   }
   sceneButtons.forEach((button, index) => {
@@ -400,6 +402,9 @@ import { configureInstagramLinks } from './instagram-links.mjs?v=27bca4c578';
       if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
       event.preventDefault(); const next = sceneButtons[(index + (event.key === 'ArrowRight' ? 1 : sceneButtons.length - 1)) % sceneButtons.length]; next.focus(); setHeroEdit(next);
     });
+  });
+  createHeroSwipe({ stage:$('.hero-image-wrap'), image:$('.hero-image'), motionAllowed,
+    step:direction => setHeroEdit(sceneButtons[nextHeroIndex(sceneButtons.findIndex(button => button.classList.contains('active')), direction, sceneButtons.length)])
   });
   function updateEventDetails() {
     $('#celebration-options').hidden = form.elements.occasion.value !== 'Multiple celebrations';

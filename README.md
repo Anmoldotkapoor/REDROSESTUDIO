@@ -121,3 +121,7 @@ TikTok: https://www.tiktok.com/@royalrosestudiobygagan
 Snapchat: https://www.snapchat.com/add/royalrosestudio
 
 Both profiles appear as accessible logo links in the Studio and Academy footers. The handles are supplied by the owner. The TikTok and Snapchat SVG glyphs are from Simple Icons (CC0); the five social buttons wrap safely at narrow widths.
+
+## Swiping and brush cursors
+
+The three hero portraits accept left/right swipes or drags with wraparound, alongside the number buttons and keyboard controls. Start brushing now immediately shows the touch brush, follows contact and restores scrolling with Done. Fine-pointer devices get a small native brush cursor across the website and Academy, with normal input cursors and browser fallbacks. See [interaction notes and verification](docs/interaction-qa.md).

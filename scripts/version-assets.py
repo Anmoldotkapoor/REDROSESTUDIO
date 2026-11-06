@@ -10,7 +10,7 @@ if (root / 'dist' / 'index.html').is_file():
 def version(name):
     return hashlib.sha256((root / name).read_bytes()).hexdigest()[:10]
 
-for entry, dependency in (('app.js', 'brush-studio.mjs'), ('academy.js', 'academy-data.mjs'), ('instagram.js', 'instagram-data.mjs'), ('app.js', 'instagram-links.mjs'), ('academy.js', 'instagram-links.mjs'), ('instagram.js', 'instagram-links.mjs')):
+for entry, dependency in (('app.js', 'brush-studio.mjs'), ('app.js', 'hero-swipe.mjs'), ('academy.js', 'academy-data.mjs'), ('instagram.js', 'instagram-data.mjs'), ('app.js', 'instagram-links.mjs'), ('academy.js', 'instagram-links.mjs'), ('instagram.js', 'instagram-links.mjs')):
     script = root / entry
     if script.is_file():
         script.write_text(re.sub("from './" + re.escape(dependency) + r"(?:\?v=[^']*)?'", "from './" + dependency + '?v=' + version(dependency) + "'", script.read_text()))
