@@ -163,3 +163,9 @@ html[data-theme=light] .brand-lockup { filter:none; }
   .footer-social { grid-column:auto; justify-content:center; }
   .experience-signature img { width:36px; height:36px; }
 }
+
+/* Keep the full social row comfortable on narrow screens. */
+.footer-top { flex-wrap:wrap; }
+.footer-social { flex-wrap:wrap; gap:12px; }
+.footer-social .social-icon { flex-shrink:0; }
+@media(min-width:701px) and (max-width:1000px) { .footer-top .footer-social { flex-basis:100%; justify-content:center; } }

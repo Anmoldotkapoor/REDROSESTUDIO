@@ -113,3 +113,11 @@ node scripts/sync-instagram.mjs
 ```
 
 The second command contacts the public Instagram profile and refreshes the local snapshot. The gallery's sessionStorage key remembers only the previous post order for this browser tab.
+
+## Additional social profiles
+
+TikTok: https://www.tiktok.com/@royalrosestudiobygagan
+
+Snapchat: https://www.snapchat.com/add/royalrosestudio
+
+Both profiles appear as accessible logo links in the Studio and Academy footers. The handles are supplied by the owner. The TikTok and Snapchat SVG glyphs are from Simple Icons (CC0); the five social buttons wrap safely at narrow widths.
