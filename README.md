@@ -102,3 +102,14 @@ node --test tests/academy.test.mjs
 ```
 
 The static checker validates both pages and their cross-page anchors. Asset versioning updates both pages and their scripts.
+
+## Instagram journal
+
+The homepage now includes real Instagram post previews: a randomized desktop collage, a swipeable phone gallery, and links to the original posts. An anonymous public-profile updater checks Royal Rose's Instagram link every six hours using GitHub Actions. No Meta app or Instagram credentials are required. This is a best-effort public-page integration; if Instagram limits access, the last good gallery remains visible. See [Instagram setup, operation and verification](docs/instagram.md).
+
+```sh
+node --test tests/instagram.test.mjs
+node scripts/sync-instagram.mjs
+```
+
+The second command contacts the public Instagram profile and refreshes the local snapshot. The gallery's sessionStorage key remembers only the previous post order for this browser tab.
