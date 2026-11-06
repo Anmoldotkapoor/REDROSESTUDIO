@@ -10,7 +10,7 @@ The Velvet Rose experience: an editorial makeup and bridal artistry website with
 python3 -m http.server 4173 --bind 127.0.0.1 --directory .
 ```
 
-Open http://127.0.0.1:4173/. All production files are in `` and can be served by a static host.
+Open http://127.0.0.1:4173/. All production files are in the repository root and can be served by a static host.
 
 ## Visitor experience
 
