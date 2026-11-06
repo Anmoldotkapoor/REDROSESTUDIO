@@ -2,6 +2,8 @@
 
 Live site: https://anmoldotkapoor.github.io/REDROSESTUDIO/
 
+Academy: https://anmoldotkapoor.github.io/REDROSESTUDIO/academy.html
+
 The Velvet Rose experience: an editorial makeup and bridal artistry website with complete dark/light themes. Built with HTML, CSS and vanilla JavaScript; no framework, build dependency or API key is required.
 
 ## Local preview
@@ -89,3 +91,14 @@ node --check brush-studio.mjs
 node --test tests/brush-studio.test.mjs
 python3 scripts/check-static.py
 ```
+
+## Royal Rose Academy
+
+The dedicated Academy page offers four illustrated training paths, curriculum dialogs, filters, a city selector, an animated brush study and an enquiry planner. Contact links carry the selected course details to WhatsApp or email; prices are requested directly from Gagan. See [Academy notes and verification](docs/academy.md).
+
+```sh
+node --check academy.js
+node --test tests/academy.test.mjs
+```
+
+The static checker validates both pages and their cross-page anchors. Asset versioning updates both pages and their scripts.

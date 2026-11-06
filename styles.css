@@ -127,6 +127,23 @@ body.brush-editing .mobile-book, body.brush-editing .whatsapp-float, body.brush-
 }
 
 /* Royal Rose identity: the rose blooms into the brush. */
+.academy-invite { position:relative; isolation:isolate; display:flex; justify-content:space-between; align-items:center; gap:50px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:radial-gradient(ellipse at 90% 100%,#a95b7220,transparent 60%),var(--surface); overflow:hidden; }
+.academy-invite h2 { margin:21px 0 24px; }
+.academy-invite>div>p:not(.eyebrow) { font-size:13px; color:var(--muted); line-height:1.9; }
+.academy-invite-action { position:relative; z-index:2; max-width:340px; padding-bottom:20px; }
+.academy-invite-action>span { display:block; font-size:9px; letter-spacing:1.2px; color:var(--gold); margin-bottom:23px; }
+.academy-invite-action .button { font-size:12px; gap:25px; }
+.academy-invite-action>p { font-size:11px!important; margin-top:18px; }
+.academy-invite>img { position:absolute; z-index:-1; width:350px; right:-80px; bottom:-30px; opacity:.12; transform:rotate(-25deg); pointer-events:none; }
+.academy-footer-link { display:inline-flex; align-items:center; min-height:44px; color:var(--accent); font-size:11px; }
+@media(max-width:700px) {
+  .academy-invite { flex-direction:column; align-items:flex-start; gap:29px; }
+  .academy-invite h2 { font-size:43px; }
+  .academy-invite-action { max-width:100%; padding:0; }
+  .academy-invite-action>span { margin-bottom:17px; }
+  .academy-invite-action .button { font-size:11px; gap:20px; }
+  .academy-invite>img { width:280px; right:-70px; bottom:40px; }
+}
 .brand { gap:0; }
 .brand-lockup { display:block; width:234px; height:78px; object-fit:contain; filter:brightness(0) saturate(100%) invert(91%) sepia(12%) saturate(497%) hue-rotate(326deg) brightness(103%); }
 html[data-theme=light] .brand-lockup { filter:none; }

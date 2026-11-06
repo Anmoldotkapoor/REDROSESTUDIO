@@ -10,11 +10,14 @@ if (root / 'dist' / 'index.html').is_file():
 def version(name):
     return hashlib.sha256((root / name).read_bytes()).hexdigest()[:10]
 
-app = root / 'app.js'
-app.write_text(re.sub(r"from './brush-studio\.mjs(?:\?v=[^']*)?'", "from './brush-studio.mjs?v=" + version('brush-studio.mjs') + "'", app.read_text()))
-index = root / 'index.html'
-html = index.read_text()
-for name in ('styles.css', 'app.js'):
-    html = re.sub(re.escape(name) + r'(?:\?v=[^"\s]*)?(?=")', name + '?v=' + version(name), html)
-index.write_text(html)
+for entry, dependency in (('app.js', 'brush-studio.mjs'), ('academy.js', 'academy-data.mjs')):
+    script = root / entry
+    if script.is_file():
+        script.write_text(re.sub("from './" + re.escape(dependency) + r"(?:\?v=[^']*)?'", "from './" + dependency + '?v=' + version(dependency) + "'", script.read_text()))
+for page in root.glob('*.html'):
+    html = page.read_text()
+    for name in ('styles.css', 'app.js', 'academy.css', 'academy.js'):
+        if (root / name).is_file():
+            html = re.sub(re.escape(name) + r'(?:\?v=[^"\s]*)?(?=")', name + '?v=' + version(name), html)
+    page.write_text(html)
 print('Versioned browser assets.')
