@@ -2,6 +2,8 @@
 
 A rose becomes a makeup brush in one flowing emblem. The serif wordmark and burgundy, dusty rose and antique gold palette continue the Velvet Rose website direction.
 
+Current business descriptor, updated by the owner on 7 November 2026: **Makeup & Hair Artistry**. The original image-generation prompts below retain their historical wording; the logo artwork itself contains only the business name.
+
 ## Deliverables
 
 - `assets/royal-rose-logo.png`: complete transparent PNG logo, 2172 × 724.

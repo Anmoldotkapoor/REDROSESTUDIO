@@ -39,7 +39,7 @@ Research date: 6 November 2026. This is a representative review of 12 relevant a
 
 ## Facts supplied by the user
 
-- Royal Rose Studio by Gagan — Makeup & Bridal Artistry.
+- Royal Rose Studio by Gagan — Makeup & Hair Artistry (business descriptor updated by the owner on 7 November 2026).
 - Bridal • Jago • Mehndi • Pre-wedding Photoshoot.
 - Phone: 916-217-9247.
 - Email: bookings.royalrosebygagan@outlook.com.

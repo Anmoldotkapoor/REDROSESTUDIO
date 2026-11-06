@@ -4,7 +4,7 @@ Live site: https://anmoldotkapoor.github.io/REDROSESTUDIO/
 
 Academy: https://anmoldotkapoor.github.io/REDROSESTUDIO/academy.html
 
-The Velvet Rose experience: an editorial makeup and bridal artistry website with complete dark/light themes. Built with HTML, CSS and vanilla JavaScript; no framework, build dependency or API key is required.
+The Velvet Rose experience: an editorial makeup and hair artistry website with complete dark/light themes. Built with HTML, CSS and vanilla JavaScript; no framework, build dependency or API key is required.
 
 ## Local preview
 
@@ -32,7 +32,7 @@ The separate homepage “Find your muse” gallery was removed at the user’s r
 
 ## Supplied business facts
 
-Royal Rose Studio by Gagan — Makeup & Bridal Artistry.
+Royal Rose Studio by Gagan — Makeup & Hair Artistry.
 
 Service areas: Yuba City, Lincoln, Sacramento, Elk Grove and Surrey, BC, Canada.
 
