@@ -1,0 +1,5 @@
+.DS_Store
+.openai/
+original-assets/
+qa/
+*.tgz
