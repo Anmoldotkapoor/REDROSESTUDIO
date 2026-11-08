@@ -1,8 +1,8 @@
 # Royal Rose Studio by Gagan
 
-Live site: https://anmoldotkapoor.github.io/REDROSESTUDIO/
+Live site: https://royalrosebygagan.com/
 
-Academy: https://anmoldotkapoor.github.io/REDROSESTUDIO/academy.html
+Academy: https://royalrosebygagan.com/academy.html
 
 The Velvet Rose experience: an editorial makeup and hair artistry website with complete dark/light themes. Built with HTML, CSS and vanilla JavaScript; no framework, build dependency or API key is required.
 
@@ -129,3 +129,7 @@ The three hero portraits accept left/right swipes or drags with wraparound, alon
 ## Latest reliability and speed audit
 
 Direct photo dragging/tapping now works in Slide to reveal. All 41 regression tests pass, with both pages checked in both themes at phone, tablet and desktop widths. Web logo/emblem assets are 74.5% smaller together; originals remain intact. Canvas work is cached, offscreen imagery/feed work is deferred, and module dependencies preload. See [the detailed audit and limits](docs/site-audit.md).
+
+## Custom domain
+
+The domain `royalrosebygagan.com` is registered and managed through Wix; the website remains hosted on GitHub Pages. Preserve the root `CNAME` file on every deployment. See [domain configuration](docs/custom-domain.md) for DNS and verification details.
