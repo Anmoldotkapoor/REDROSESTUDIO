@@ -133,3 +133,7 @@ Direct photo dragging/tapping now works in Slide to reveal. All 41 regression te
 ## Custom domain
 
 The domain `royalrosebygagan.com` is registered and managed through Wix; the website remains hosted on GitHub Pages. Preserve the root `CNAME` file on every deployment. See [domain configuration](docs/custom-domain.md) for DNS and verification details.
+
+## Direct-link hub
+
+The standalone [Royal Rose links page](https://royalrosebygagan.com/links.html) brings together WhatsApp, Instagram, TikTok, Snapchat, phone, email, the studio and Academy. It is intentionally absent from the main navigation and uses noindex metadata. Facebook retains page-name search guidance until the owner supplies the exact URL. Visitors can save a vCard, copy/share the hub URL, switch themes and expand the five service locations.

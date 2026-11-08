@@ -10,13 +10,13 @@ if (root / 'dist' / 'index.html').is_file():
 def version(name):
     return hashlib.sha256((root / name).read_bytes()).hexdigest()[:10]
 
-for entry, dependency in (('app.js', 'brush-studio.mjs'), ('app.js', 'hero-swipe.mjs'), ('academy.js', 'academy-data.mjs'), ('instagram.js', 'instagram-data.mjs'), ('app.js', 'instagram-links.mjs'), ('academy.js', 'instagram-links.mjs'), ('instagram.js', 'instagram-links.mjs')):
+for entry, dependency in (('app.js', 'brush-studio.mjs'), ('app.js', 'hero-swipe.mjs'), ('academy.js', 'academy-data.mjs'), ('instagram.js', 'instagram-data.mjs'), ('app.js', 'instagram-links.mjs'), ('academy.js', 'instagram-links.mjs'), ('instagram.js', 'instagram-links.mjs'), ('links.js', 'instagram-links.mjs')):
     script = root / entry
     if script.is_file():
         script.write_text(re.sub("from './" + re.escape(dependency) + r"(?:\?v=[^']*)?'", "from './" + dependency + '?v=' + version(dependency) + "'", script.read_text()))
 for page in root.glob('*.html'):
     html = page.read_text()
-    for name in ('styles.css', 'app.js', 'academy.css', 'academy.js', 'instagram.css', 'instagram.js', 'brush-studio.mjs', 'hero-swipe.mjs', 'instagram-links.mjs', 'academy-data.mjs'):
+    for name in ('styles.css', 'app.js', 'academy.css', 'academy.js', 'instagram.css', 'instagram.js', 'links.css', 'links.js', 'brush-studio.mjs', 'hero-swipe.mjs', 'instagram-links.mjs', 'academy-data.mjs'):
         if (root / name).is_file():
             html = re.sub(re.escape(name) + r'(?:\?v=[^"\s]*)?(?=")', name + '?v=' + version(name), html)
     page.write_text(html)
